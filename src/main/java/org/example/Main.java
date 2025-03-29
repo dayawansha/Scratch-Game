@@ -34,19 +34,6 @@ public class Main {
 
         try {
 
-//            {
-//                "column": 0,
-//                    "row": 0,
-//                    "symbols": {
-//                        "A": 1,
-//                        "B": 2,
-//                        "C": 3,
-//                        "D": 4,
-//                        "E": 5,
-//                        "F": 6
-//            }
-//            },
-
             // Create ObjectMapper for reading JSON
             ObjectMapper objectMapper = new ObjectMapper();
 
@@ -54,18 +41,19 @@ public class Main {
             RootObject rootObject = objectMapper.readValue(inputStream, RootObject.class);
 
             // Access and print some fields to verify it worked
-            System.out.println("Columns: " + rootObject.getColumns());
-            System.out.println("Rows: " + rootObject.getRows());
+//            System.out.println("Columns: " + rootObject.getColumns());
+//            System.out.println("Rows: " + rootObject.getRows());
 
             List<StandardSymbol> standardSymbolList = rootObject.getProbabilities().getStandardSymbols();
+
+            String[][] finalMetrix = new String[3][3];
 
             // Access probabilities
             for (StandardSymbol symbol : standardSymbolList) {
                 System.out.println("Column: " + symbol.getColumn() + ", Row: " + symbol.getRow());
-                System.out.println("Symbols: " + symbol.getSymbols());
+//                System.out.println("Symbols: " + symbol.getSymbols());
 
                 Map<String, Integer> symbolMap =symbol.getSymbols();
-
 
                 Random random = new Random();
                 int totalWeight =0;
@@ -74,9 +62,8 @@ public class Main {
                 totalWeight = symbolMap.values().stream().mapToInt(Integer::intValue).sum();
                 int randomValue = random.nextInt(totalWeight - 1); // Generates 0 to (totalWeight - 1)
 
-                System.out.println("totalWeight: " + totalWeight);
+//                System.out.println("totalWeight: " + totalWeight);
                 System.out.println("randomValue: " + randomValue);
-
 
                 int currentSum = 0;
                 String cell = null;
@@ -87,19 +74,28 @@ public class Main {
                     if (currentSum > randomValue) {
                       cell = entry.getKey();
                       ansList.add(cell);
+                      finalMetrix[symbol.getRow()][symbol.getColumn()] = cell;
                       break;
                     }
 
                 }
-
-                System.out.println("ansList  " + ansList);
+//                System.out.println("ansList  " + ansList);
                 System.out.println("########");
+            }
 
+            // Print the 2D array
+            for (String[] row : finalMetrix) {
+                for (String col : row) {
+                    System.out.print(col + " ");
+                }
+                System.out.println();
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
 
     }
 
