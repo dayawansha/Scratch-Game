@@ -7,7 +7,7 @@ import dto.StandardSymbol;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+import java.util.*;
 
 public class Main {
 
@@ -33,6 +33,20 @@ public class Main {
         }
 
         try {
+
+//            {
+//                "column": 0,
+//                    "row": 0,
+//                    "symbols": {
+//                        "A": 1,
+//                        "B": 2,
+//                        "C": 3,
+//                        "D": 4,
+//                        "E": 5,
+//                        "F": 6
+//            }
+//            },
+
             // Create ObjectMapper for reading JSON
             ObjectMapper objectMapper = new ObjectMapper();
 
@@ -43,33 +57,49 @@ public class Main {
             System.out.println("Columns: " + rootObject.getColumns());
             System.out.println("Rows: " + rootObject.getRows());
 
+            List<StandardSymbol> standardSymbolList = rootObject.getProbabilities().getStandardSymbols();
+
             // Access probabilities
-            for (StandardSymbol symbol : rootObject.getProbabilities().getStandardSymbols()) {
+            for (StandardSymbol symbol : standardSymbolList) {
                 System.out.println("Column: " + symbol.getColumn() + ", Row: " + symbol.getRow());
                 System.out.println("Symbols: " + symbol.getSymbols());
+
+                Map<String, Integer> symbolMap =symbol.getSymbols();
+
+
+                Random random = new Random();
+                int totalWeight =0;
+
+                // Sum all values in the map
+                totalWeight = symbolMap.values().stream().mapToInt(Integer::intValue).sum();
+                int randomValue = random.nextInt(totalWeight - 1); // Generates 0 to (totalWeight - 1)
+
+                System.out.println("totalWeight: " + totalWeight);
+                System.out.println("randomValue: " + randomValue);
+
+
+                int currentSum = 0;
+                String cell = null;
+                ArrayList<String> ansList = new ArrayList<>();
+
+                for (Map.Entry<String, Integer> entry : symbolMap.entrySet()) {
+                    currentSum += entry.getValue(); // Add the weight of the current key
+                    if (currentSum > randomValue) {
+                      cell = entry.getKey();
+                      ansList.add(cell);
+                      break;
+                    }
+
+                }
+
+                System.out.println("ansList  " + ansList);
+                System.out.println("########");
+
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
-//        Random random = new Random();
-//        int randomValue = random.nextInt(10); // Generates 0 to (totalWeight - 1)
-//        int currentSum = 0;
-//
-//        Map<String, Integer> probabilities = new HashMap<>();
-//
-//        for (Map.Entry<String, Integer> entry : probabilities.entrySet()) {
-//            currentSum += entry.getValue(); // Add the weight of the current key
-//            if (randomValue < currentSum) {
-////                return entry.getKey();
-//            }
-//        }
-
-
-        System.out.println("Hello world!");
-
 
     }
 
