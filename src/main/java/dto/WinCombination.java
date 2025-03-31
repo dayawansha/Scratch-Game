@@ -10,7 +10,8 @@ public class WinCombination {
     @JsonProperty("reward_multiplier")
     private double rewardMultiplier;
     private String when;
-    private int count;
+
+    private double count;
     private String group;
 
     @JsonProperty("covered_areas")
@@ -33,14 +34,6 @@ public class WinCombination {
         this.when = when;
     }
 
-    public int getCount() {
-        return count;
-    }
-
-    public void setCount(int count) {
-        this.count = count;
-    }
-
     public String getGroup() {
         return group;
     }
@@ -55,5 +48,13 @@ public class WinCombination {
 
     public void setCoveredAreas(List<List<String>> coveredAreas) {
         this.coveredAreas = coveredAreas;
+    }
+
+    public double getCount() {
+        return count;
+    }
+
+    public void setCount(double count) {
+        this.count = count;
     }
 }

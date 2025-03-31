@@ -42,5 +42,13 @@ public class SymbolDetails {
     public void setImpact(String impact) {
         this.impact = impact;
     }
+
+    public Integer getExtra() {
+        return extra;
+    }
+
+    public void setExtra(Integer extra) {
+        this.extra = extra;
+    }
 }
 
