@@ -20,7 +20,7 @@ public class Main {
 
         // Access probabilities
         for (StandardSymbol symbol : standardSymbolList) {
-            System.out.println("Column: " + symbol.getColumn() + ", Row: " + symbol.getRow());
+//            System.out.println("Column: " + symbol.getColumn() + ", Row: " + symbol.getRow());
             Map<String, Integer> symbolMap =symbol.getSymbols();
 
             Random random = new Random();
@@ -29,7 +29,7 @@ public class Main {
             // Sum all values in the map
             totalWeight = symbolMap.values().stream().mapToInt(Integer::intValue).sum();
             int randomValue = random.nextInt(totalWeight - 1); // Generates 0 to (totalWeight - 1)
-            System.out.println("randomValue: " + randomValue);
+//            System.out.println("randomValue: " + randomValue);
 
             int currentSum = 0;
             String cell = null;
@@ -97,7 +97,7 @@ public class Main {
     // = 6600
     //Examples (with a winning combination [same symbols should be repeated at least 3 / reward x2]):
 
-    public static double calculateWinningAmount(Map<String, Integer> rewardMultiplierSymbolsMap, RootObject rootObject, int betAmount ){
+    public static double calculateWinningAmountWithoutBonus(Map<String, Integer> rewardMultiplierSymbolsMap, RootObject rootObject, int betAmount ){
 
         double total= 0;
         for (Map.Entry<String, Integer> entry : rewardMultiplierSymbolsMap.entrySet()) {
@@ -119,7 +119,7 @@ public class Main {
         return winCombinationsCount;
     }
 
-    public static double addBonus(StringBuilder bonusKey, double winningAmountWithoutBonus, RootObject rootObject ){
+    public static double addSymbolBonus(StringBuilder bonusKey, double winningAmountWithoutBonus, RootObject rootObject ){
 
         double finalValue = 0;
         String key = String.valueOf(bonusKey);
@@ -139,67 +139,82 @@ public class Main {
         return finalValue;
     }
 
-    public static int[][] findAllWinningIndices(String[][] matrixWithBonusSymbols, HashMap<String, Integer> winningDuplicateSymbols, RootObject rootObject) {
+    public static double  addPatternBonus(String[][] matrixWithBonusSymbols, HashMap<String, Integer> winningDuplicateSymbols,
+                                          RootObject rootObject, double winningAmountWithSymbolBonus){
 
+        double winningAmountWithPatternBonus = winningAmountWithSymbolBonus;
         // HashMap to store indexes
-        HashMap<String, int[][]> indexMap = new HashMap<>();
-        HashMap<String, List<Integer>> firstIndexMap = new HashMap<>();
-        HashMap<String, List<Integer>> secondIndexMap = new HashMap<>();
+//        HashMap<String, int[][]> indexMap = new HashMap<>();
+        HashMap<String, List<Integer>> allHorizontalIndexesMap = new HashMap<>();
+        HashMap<String, List<Integer>> allVerticalIndexesMap = new HashMap<>();
+
+        findAllWinningIndices(  allHorizontalIndexesMap, allVerticalIndexesMap , matrixWithBonusSymbols, winningDuplicateSymbols,  rootObject);
+
+
+        List<String> keysWithHorizontalSequence = hasHorizontalSequence(allHorizontalIndexesMap,  rootObject);
+        List<String> keysWithVerticalSequence = hasVerticalSequence(allVerticalIndexesMap,  rootObject);
+
+        if(keysWithHorizontalSequence.size() > 0){
+            double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_horizontally").getRewardMultiplier();
+            winningAmountWithPatternBonus = winningAmountWithSymbolBonus * rewardMultiplier * keysWithHorizontalSequence.size();
+        }
+
+        else if (keysWithVerticalSequence.size() > 0) {
+            double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_vertically").getRewardMultiplier();
+            winningAmountWithPatternBonus = winningAmountWithSymbolBonus * rewardMultiplier * keysWithVerticalSequence.size();
+        }
+
+        return winningAmountWithPatternBonus;
+    }
+    public static void findAllWinningIndices( HashMap<String, List<Integer>> allXindexesMap,HashMap<String, List<Integer>> allYindexesMap ,
+                                                 String[][] matrixWithBonusSymbols, HashMap<String, Integer> winningDuplicateSymbols, RootObject rootObject) {
+
 
         // Finding indexes for each winning symbol
         for (Map.Entry<String, Integer> entry : winningDuplicateSymbols.entrySet()) {
             String key = entry.getKey();
             List<int[]> positions = new ArrayList<>();
-            List<Integer> firstPositions = new ArrayList<>();
-            List<Integer> secondPositions = new ArrayList<>();
+            List<Integer> allXindexes = new ArrayList<>();
+            List<Integer> allYindexes = new ArrayList<>();
 
             // Searching in the matrix
             for (int i = 0; i < matrixWithBonusSymbols.length; i++) {
                 for (int j = 0; j < matrixWithBonusSymbols[i].length; j++) {
                     if (matrixWithBonusSymbols[i][j].equals(key)) {
                         positions.add(new int[]{i, j}); // Store (row, column) index
-                        firstPositions.add(i);
-                        secondPositions.add(j);
+                        allXindexes.add(i);
+                        allYindexes.add(j);
                     }
                 }
             }
-
             // Convert List<int[]> to int[][] and put in indexMap
-            indexMap.put(key, positions.toArray(new int[0][]));
-            firstIndexMap.put(key, firstPositions);
-            secondIndexMap.put(key, secondPositions);
+//            indexMap.put(key, positions.toArray(new int[0][]));
+            allXindexesMap.put(key, allXindexes);
+            allYindexesMap.put(key, allYindexes);
         }
 
         // Printing the indexMap
-        for (Map.Entry<String, int[][]> entry : indexMap.entrySet()) {
-            System.out.println("Key: " + entry.getKey());
-            for (int[] pos : entry.getValue()) {
-                System.out.println("  (" + pos[0] + ", " + pos[1] + ")");
-            }
-        }
+//        for (Map.Entry<String, int[][]> entry : indexMap.entrySet()) {
+//            System.out.println("Key: " + entry.getKey());
+//            for (int[] pos : entry.getValue()) {
+//                System.out.println("  (" + pos[0] + ", " + pos[1] + ")");
+//            }
+//        }
 
         // Printing the map
-        for (Map.Entry<String, List<Integer>> entry : firstIndexMap.entrySet()) {
+        for (Map.Entry<String, List<Integer>> entry : allXindexesMap.entrySet()) {
             System.out.println("X Key: " + entry.getKey() + ", Values: " + entry.getValue());
         }
 
         // Printing the map
-        for (Map.Entry<String, List<Integer>> entry : secondIndexMap.entrySet()) {
+        for (Map.Entry<String, List<Integer>> entry : allYindexesMap.entrySet()) {
             System.out.println("Y Key: " + entry.getKey() + ", Values: " + entry.getValue());
         }
-
-        hasHorizontalSequence(firstIndexMap,  rootObject);
-        hasVerticalSequence(secondIndexMap,  rootObject);
-
-
-        // Convert List<int[]> to int[][]
-        return null;
     }
 
-    public static double hasHorizontalSequence( HashMap<String, List<Integer>> firstIndexMap, RootObject rootObject){
+    public static  List<String> hasHorizontalSequence( HashMap<String, List<Integer>> firstIndexMap, RootObject rootObject){
 
         List<String> keysWithFrequentNumbers = new ArrayList<>();
-
         int columnLength = rootObject.getColumns();
 
         for (Map.Entry<String, List<Integer>> entry : firstIndexMap.entrySet()) {
@@ -219,15 +234,12 @@ public class Main {
                     break; // No need to check further for this key
                 }
             }
-            System.out.println("Horizontal Sequence appearing more than " + columnLength + " times: " + keysWithFrequentNumbers);
+            System.out.println("Horizontal Sequence, symbol appearing more than " + columnLength + " times: " + keysWithFrequentNumbers);
         }
-
-        return 0;
+        return keysWithFrequentNumbers;
     }
 
-
-
-    public static double hasVerticalSequence( HashMap<String, List<Integer>> firstIndexMap, RootObject rootObject){
+    public static  List<String> hasVerticalSequence( HashMap<String, List<Integer>> firstIndexMap, RootObject rootObject){
 
         List<String> keysWithFrequentNumbers = new ArrayList<>();
 
@@ -250,11 +262,12 @@ public class Main {
                     break; // No need to check further for this key
                 }
             }
-            System.out.println("Vertical Sequence appearing more than " + rowLength + " times: " + keysWithFrequentNumbers);
+            System.out.println("Vertical Sequence, symbol appearing more than " + rowLength + " times: " + keysWithFrequentNumbers);
         }
 
-        return 0;
+        return keysWithFrequentNumbers;
     }
+
 
 
      public static void main(String[] args) {
@@ -302,13 +315,19 @@ public class Main {
             System.out.println("getDuplicateSymbols  " + getDuplicateSymbols(matrixWithBonusSymbols));
             Map<String, Integer>  winningDuplicateSymbols = getDuplicateSymbols(matrixWithBonusSymbols);
 
-            double winningAmountWithoutBonus = calculateWinningAmount(winningDuplicateSymbols, rootObject, betAmount );
+            double winningAmountWithoutBonus = calculateWinningAmountWithoutBonus(winningDuplicateSymbols, rootObject, betAmount );
             System.out.println("winningAmountWithoutBonus  " + winningAmountWithoutBonus);
 
-            double winningAmountWithBonus = addBonus( bonusKey, winningAmountWithoutBonus,  rootObject );
-            System.out.println("winningAmountWithBonus  " + winningAmountWithBonus);
+            double winningAmountWithSymbolBonus = addSymbolBonus( bonusKey, winningAmountWithoutBonus,  rootObject );
+            System.out.println("winningAmountWithSymbolBonus  " + winningAmountWithSymbolBonus);
 
-            findAllWinningIndices(matrixWithBonusSymbols, (HashMap<String, Integer>) winningDuplicateSymbols,rootObject);
+
+
+            // pattern based Bonus calculation
+            double winningAmountWithSymbolBonusAndPatternBonus = addPatternBonus( matrixWithBonusSymbols, (HashMap<String, Integer>) winningDuplicateSymbols
+                    ,rootObject   ,winningAmountWithSymbolBonus);
+
+            System.out.println("winningAmountWithSymbolBonusAndPatternBonus  " + winningAmountWithSymbolBonusAndPatternBonus);
 
             } catch (IOException e) {
             e.printStackTrace();
