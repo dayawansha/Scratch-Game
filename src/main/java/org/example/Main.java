@@ -89,32 +89,19 @@ public class Main {
         return filteredMap;
     }
 
-    //  Calculations: (bet_amount x reward(symbol_A) x reward(same_symbol_5_times) x reward(same_symbols_vertically))
-    //               + (bet_amount x reward(symbol_B) x reward(same_symbol_3_times) x reward(same_symbols_vertically)) (+/x) reward(+1000)
-
-
-    // = (100 x5 x5 x2) + (100 x3 x1 x2) + 1000
-    // = 5000 + 600 + 1000
-    // = 6600
-    //Examples (with a winning combination [same symbols should be repeated at least 3 / reward x2]):
 
     public static Map<String, Double> calculateWinningAmountWithoutBonus(Map<String, Integer> rewardMultiplierSymbolsMap, RootObject rootObject, int betAmount ){
 
         Map<String, Double> countMap = new HashMap<>();
 
-
-        double total= 0;
         for (Map.Entry<String, Integer> entry : rewardMultiplierSymbolsMap.entrySet()) {
-            // bet_amount x reward(symbol_A) x reward(same_symbol_5_times)
-
             double symbolValue = (rootObject.getSymbols().get(entry.getKey()).getRewardMultiplier());
             int sameSymbolCount = entry.getValue();
             double winCombinationsCount = getWinCombinationCount(sameSymbolCount, rootObject);
             double reward = betAmount * symbolValue * winCombinationsCount ;
             countMap.put(entry.getKey(),reward );
-//            total = total+ reward ;
+
         }
-//        rewardMultiplierSymbolsMap = countMap
         return countMap;
     }
 
@@ -122,9 +109,31 @@ public class Main {
     public static double getWinCombinationCount(int sameSymbolCount, RootObject rootObject){
         String winCombinationsKey = "same_symbol_" + sameSymbolCount + "_times";
         double winCombinationsCount = rootObject.getWinCombinations().get(winCombinationsKey).getRewardMultiplier();
-//        double winCombinationsCount = rootObject.getWinCombinations().get(winCombinationsKey).getCount();
+//        double winCombinationsCount = rootObject.getWinCombinations().get(winCombinationsKey).getCount();  //todo requirements shoud verify
         return winCombinationsCount;
     }
+
+    public static HashMap<String, List<String>> updateWinningCombinations(Map<String, Integer> winningDuplicateSymbols, HashMap<String, List<String>> appliedWinningCombinations){
+
+        HashMap<String, List<String>> newAppliedWinningCombinations = new HashMap<>();
+
+        for (Map.Entry<String, Integer> entry : winningDuplicateSymbols.entrySet()) {
+
+            int sameSymbolCount = entry.getValue();
+            String key = entry.getKey();
+
+            String winCombinationsKey = "same_symbol_" + sameSymbolCount + "_times";
+            List<String> newList = new ArrayList<>();
+            newList.add(winCombinationsKey);
+
+            List<String> list = appliedWinningCombinations.get(key);
+            newList.addAll(list);
+
+            newAppliedWinningCombinations.put(key,  newList);
+        }
+        return newAppliedWinningCombinations;
+    }
+
 
     public static double addSymbolBonus(StringBuilder bonusKey, double winningAmountWithoutBonus, RootObject rootObject ){
 
@@ -147,7 +156,7 @@ public class Main {
     }
 
     public static double  addPatternBonus(String[][] matrixWithBonusSymbols, HashMap<String, Integer> winningDuplicateSymbols,
-                                          RootObject rootObject,  Map<String, Double> winingSymbolAndRewardMap ){
+                                          RootObject rootObject,  Map<String, Double> winingSymbolAndRewardMap , HashMap<String, List<String>> appliedWinningCombinations){
 
         HashMap<String, List<Integer>> allHorizontalIndexesMap = new HashMap<>();
         HashMap<String, List<Integer>> allVerticalIndexesMap = new HashMap<>();
@@ -166,6 +175,7 @@ public class Main {
                 double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_horizontally").getRewardMultiplier();
                 double total = winningAmountWithSymbolBonus * rewardMultiplier * keysWithHorizontalSequence.size();
                 winningAmountWithPatternBonusHorizontally = winningAmountWithPatternBonusHorizontally + total;
+                appliedWinningCombinations.put(keysWithVerticalSequence.get(i), Collections.singletonList("same_symbols_vertically"));
             }
         }
         double winningAmountWithPatternBonusVertically =0;
@@ -175,6 +185,7 @@ public class Main {
                 double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_vertically").getRewardMultiplier();
                 double total = winningAmountWithSymbolBonus * rewardMultiplier * keysWithVerticalSequence.size();
                 winningAmountWithPatternBonusVertically = winningAmountWithPatternBonusVertically +   total ;
+                appliedWinningCombinations.put(keysWithVerticalSequence.get(i), Collections.singletonList("same_symbols_vertically"));
             }
         }
 
@@ -211,19 +222,10 @@ public class Main {
                     }
                 }
             }
-            // Convert List<int[]> to int[][] and put in indexMap
-//            indexMap.put(key, positions.toArray(new int[0][]));
             allXindexesMap.put(key, allXindexes);
             allYindexesMap.put(key, allYindexes);
         }
 
-        // Printing the indexMap
-//        for (Map.Entry<String, int[][]> entry : indexMap.entrySet()) {
-//            System.out.println("Key: " + entry.getKey());
-//            for (int[] pos : entry.getValue()) {
-//                System.out.println("  (" + pos[0] + ", " + pos[1] + ")");
-//            }
-//        }
 
         // Printing the map
         for (Map.Entry<String, List<Integer>> entry : allXindexesMap.entrySet()) {
@@ -308,6 +310,8 @@ public class Main {
 
         StringBuilder bonusKey = new StringBuilder("");
 
+        HashMap<String, List<String>> appliedWinningCombinations = new HashMap<>();
+
         InputStream inputStream = Main.class.getClassLoader().getResourceAsStream("config.json");
 
         if (inputStream == null) {
@@ -326,14 +330,15 @@ public class Main {
             String[][]  matrixWithBonusSymbols2 = addBonusSymbolToMatrix(rootObject,standardSymbolMatrix, bonusKey);
 
 
-//             bonusKey = new StringBuilder("+1000");  // todo remove
-             bonusKey = new StringBuilder("10x");  // todo remove
+             bonusKey = new StringBuilder("+1000");  // todo remove
+//             bonusKey = new StringBuilder("5x");  // todo remove
+//             bonusKey = new StringBuilder("10x");  // todo remove
 
-//            String[][] matrixWithBonusSymbols = {
-//                    {"A", "A", "B"},
-//                    {"A", "+1000", "B"},
-//                    {"A", "A", "B"}
-//            };
+            String[][] matrixWithBonusSymbols = {
+                    {"A", "A", "B"},
+                    {"A", "+1000", "B"},
+                    {"A", "A", "B"}
+            };
 
 //            String[][] matrixWithBonusSymbols = {
 //                    {"A", "B", "C"},
@@ -342,11 +347,11 @@ public class Main {
 //            };
 
 
-            String[][] matrixWithBonusSymbols = {
-                    {"A", "B", "C"},
-                    {"E", "B", "10x"},
-                    {"F", "D", "B"}
-            };
+//            String[][] matrixWithBonusSymbols = {
+//                    {"A", "B", "C"},
+//                    {"E", "B", "10x"},
+//                    {"F", "D", "B"}
+//            };
 
             System.out.println("bonusKey  @@@@@@@@@@  " + bonusKey);
 
@@ -368,21 +373,19 @@ public class Main {
 
             // pattern based Bonus calculation
             double winningAmountWithSymbolBonusAndPatternBonus = addPatternBonus( matrixWithBonusSymbols, (HashMap<String, Integer>) winningDuplicateSymbols
-                    ,rootObject , winingSymbolAndRewardMap );
+                    ,rootObject, winingSymbolAndRewardMap, appliedWinningCombinations );
 
 
             double finalReword = addSymbolBonus( bonusKey, winningAmountWithSymbolBonusAndPatternBonus,  rootObject );
-            System.out.println("winningAmountWithSymbolBonus  " + finalReword);
-
-
             System.out.println("finalReword  " + finalReword);
 
+            appliedWinningCombinations = updateWinningCombinations(winningDuplicateSymbols,  appliedWinningCombinations);
 
             // final output
             OutPut outPut = new OutPut(
                     matrixWithBonusSymbols,
                     finalReword,
-                    null,
+                    appliedWinningCombinations,
                     bonusKey.toString()
             );
 
@@ -399,7 +402,6 @@ public class Main {
             e.printStackTrace();
         }
     }
-
 
 
 }

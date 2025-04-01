@@ -12,7 +12,7 @@ public class OutPut {
     private double reward;
 
     @JsonProperty("applied_winning_combinations")
-    private HashMap<String, List<Integer>> appliedWinningCombinations;
+    private HashMap<String, List<String>> appliedWinningCombinations;
 
     @JsonProperty("applied_bonus_symbol")
     private String appliedBonusSymbol;
@@ -20,7 +20,7 @@ public class OutPut {
 
     // Constructor
     public OutPut(String[][] matrix, double reward,
-                  HashMap<String, List<Integer>> appliedWinningCombinations,
+                  HashMap<String, List<String>> appliedWinningCombinations,
                   String appliedBonusSymbol) {
         this.matrix = matrix;
         this.reward = reward;
@@ -54,11 +54,11 @@ public class OutPut {
         this.reward = reward;
     }
 
-    public HashMap<String, List<Integer>> getAppliedWinningCombinations() {
+    public HashMap<String, List<String>> getAppliedWinningCombinations() {
         return appliedWinningCombinations;
     }
 
-    public void setAppliedWinningCombinations(HashMap<String, List<Integer>> appliedWinningCombinations) {
+    public void setAppliedWinningCombinations(HashMap<String, List<String>> appliedWinningCombinations) {
         this.appliedWinningCombinations = appliedWinningCombinations;
     }
 
