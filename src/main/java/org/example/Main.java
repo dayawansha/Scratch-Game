@@ -1,6 +1,8 @@
 package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import dto.OutPut;
 import dto.RootObject;
 import dto.StandardSymbol;
 
@@ -44,12 +46,11 @@ public class Main {
                     break;
                 }
             }
-            System.out.println("########");
         }
         return standardSymbolMatrix;
     }
 
-    public static String[][] addBonusTOMatrix(RootObject rootObject, String[][] standardSymbolMetrix, StringBuilder bonusKey) {
+    public static String[][] addBonusSymbolToMatrix(RootObject rootObject, String[][] standardSymbolMetrix, StringBuilder bonusKey) {
         Map<String, Integer> symbolMap = rootObject.getProbabilities().getBonusSymbols().getSymbols();
         int totalWeight = symbolMap.values().stream().mapToInt(Integer::intValue).sum();
         Random random = new Random();
@@ -97,7 +98,10 @@ public class Main {
     // = 6600
     //Examples (with a winning combination [same symbols should be repeated at least 3 / reward x2]):
 
-    public static double calculateWinningAmountWithoutBonus(Map<String, Integer> rewardMultiplierSymbolsMap, RootObject rootObject, int betAmount ){
+    public static Map<String, Double> calculateWinningAmountWithoutBonus(Map<String, Integer> rewardMultiplierSymbolsMap, RootObject rootObject, int betAmount ){
+
+        Map<String, Double> countMap = new HashMap<>();
+
 
         double total= 0;
         for (Map.Entry<String, Integer> entry : rewardMultiplierSymbolsMap.entrySet()) {
@@ -106,16 +110,19 @@ public class Main {
             double symbolValue = (rootObject.getSymbols().get(entry.getKey()).getRewardMultiplier());
             int sameSymbolCount = entry.getValue();
             double winCombinationsCount = getWinCombinationCount(sameSymbolCount, rootObject);
-            double reward = betAmount * symbolValue * sameSymbolCount * winCombinationsCount ;
-            total = total+ reward ;
+            double reward = betAmount * symbolValue * winCombinationsCount ;
+            countMap.put(entry.getKey(),reward );
+//            total = total+ reward ;
         }
-        return total;
+//        rewardMultiplierSymbolsMap = countMap
+        return countMap;
     }
 
     // sub methode of CalculateWinningAmount
     public static double getWinCombinationCount(int sameSymbolCount, RootObject rootObject){
         String winCombinationsKey = "same_symbol_" + sameSymbolCount + "_times";
-        double winCombinationsCount = rootObject.getWinCombinations().get(winCombinationsKey).getCount();
+        double winCombinationsCount = rootObject.getWinCombinations().get(winCombinationsKey).getRewardMultiplier();
+//        double winCombinationsCount = rootObject.getWinCombinations().get(winCombinationsKey).getCount();
         return winCombinationsCount;
     }
 
@@ -140,9 +147,12 @@ public class Main {
     }
 
     public static double  addPatternBonus(String[][] matrixWithBonusSymbols, HashMap<String, Integer> winningDuplicateSymbols,
-                                          RootObject rootObject, double winningAmountWithSymbolBonus){
+                                          RootObject rootObject,  Map<String, Double> winingSymbolAndRewardMap ){
 
-        double winningAmountWithPatternBonus = winningAmountWithSymbolBonus;
+
+
+        Map<String, Double> countMap = new HashMap<>();
+
         // HashMap to store indexes
 //        HashMap<String, int[][]> indexMap = new HashMap<>();
         HashMap<String, List<Integer>> allHorizontalIndexesMap = new HashMap<>();
@@ -154,15 +164,35 @@ public class Main {
         List<String> keysWithHorizontalSequence = hasHorizontalSequence(allHorizontalIndexesMap,  rootObject);
         List<String> keysWithVerticalSequence = hasVerticalSequence(allVerticalIndexesMap,  rootObject);
 
+
+        double winningAmountWithPatternBonus = 0;
+
+
+        double winningAmountWithPatternBonusHorizontally = 0;
+
         if(keysWithHorizontalSequence.size() > 0){
-            double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_horizontally").getRewardMultiplier();
-            winningAmountWithPatternBonus = winningAmountWithSymbolBonus * rewardMultiplier * keysWithHorizontalSequence.size();
+            for (int i = 0; i < keysWithHorizontalSequence.size(); i++) {
+                double winningAmountWithSymbolBonus =winingSymbolAndRewardMap.get(keysWithHorizontalSequence.get(i));
+                double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_horizontally").getRewardMultiplier();
+                double total = winningAmountWithSymbolBonus * rewardMultiplier * keysWithHorizontalSequence.size();
+
+                winningAmountWithPatternBonusHorizontally = winningAmountWithPatternBonusHorizontally + total;
+            }
         }
 
-        else if (keysWithVerticalSequence.size() > 0) {
-            double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_vertically").getRewardMultiplier();
-            winningAmountWithPatternBonus = winningAmountWithSymbolBonus * rewardMultiplier * keysWithVerticalSequence.size();
+        double winningAmountWithPatternBonusVertically =0;
+        if (keysWithVerticalSequence.size() > 0) {
+            for (int i = 0; i < keysWithVerticalSequence.size(); i++) {
+
+                double winningAmountWithSymbolBonus =winingSymbolAndRewardMap.get(keysWithVerticalSequence.get(i));
+                double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_vertically").getRewardMultiplier();
+                double total = winningAmountWithSymbolBonus * rewardMultiplier * keysWithVerticalSequence.size();
+
+                winningAmountWithPatternBonusVertically = winningAmountWithPatternBonusVertically +   total ;
+            }
         }
+
+        winningAmountWithPatternBonus = winningAmountWithPatternBonusHorizontally + winningAmountWithPatternBonusVertically;
 
         return winningAmountWithPatternBonus;
     }
@@ -242,7 +272,6 @@ public class Main {
     public static  List<String> hasVerticalSequence( HashMap<String, List<Integer>> firstIndexMap, RootObject rootObject){
 
         List<String> keysWithFrequentNumbers = new ArrayList<>();
-
         int rowLength = rootObject.getRows();
 
         for (Map.Entry<String, List<Integer>> entry : firstIndexMap.entrySet()) {
@@ -254,7 +283,6 @@ public class Main {
             for (Integer num : values) {
                 frequencyMap.put(num, frequencyMap.getOrDefault(num, 0) + 1);
             }
-
             // Check if any number appears more than 'n' times
             for (Integer count : frequencyMap.values()) {
                 if (count >= rowLength ) {
@@ -264,7 +292,6 @@ public class Main {
             }
             System.out.println("Vertical Sequence, symbol appearing more than " + rowLength + " times: " + keysWithFrequentNumbers);
         }
-
         return keysWithFrequentNumbers;
     }
 
@@ -282,7 +309,9 @@ public class Main {
 //
 //            }
 
-        int betAmount = 10;
+        int betAmount = 100;
+        System.out.println("betAmount = "+  betAmount );
+
         StringBuilder bonusKey = new StringBuilder("");
 
         InputStream inputStream = Main.class.getClassLoader().getResourceAsStream("config.json");
@@ -300,7 +329,16 @@ public class Main {
 
 
             String[][] standardSymbolMatrix= generateStandardSymbolMatrix(rootObject);
-            String[][]  matrixWithBonusSymbols = addBonusTOMatrix(rootObject,standardSymbolMatrix, bonusKey);
+            String[][]  matrixWithBonusSymbols2 = addBonusSymbolToMatrix(rootObject,standardSymbolMatrix, bonusKey);
+
+
+             bonusKey = new StringBuilder("+1000");  // todo remove
+
+            String[][] matrixWithBonusSymbols = {
+                    {"A", "A", "B"},
+                    {"A", "+1000", "B"},
+                    {"A", "A", "B"}
+            };
 
             System.out.println("bonusKey  @@@@@@@@@@  " + bonusKey);
 
@@ -315,19 +353,39 @@ public class Main {
             System.out.println("getDuplicateSymbols  " + getDuplicateSymbols(matrixWithBonusSymbols));
             Map<String, Integer>  winningDuplicateSymbols = getDuplicateSymbols(matrixWithBonusSymbols);
 
-            double winningAmountWithoutBonus = calculateWinningAmountWithoutBonus(winningDuplicateSymbols, rootObject, betAmount );
-            System.out.println("winningAmountWithoutBonus  " + winningAmountWithoutBonus);
+            Map<String, Double> winingSymbolAndRewardMap = new HashMap<String, Double>(); //
 
-            double winningAmountWithSymbolBonus = addSymbolBonus( bonusKey, winningAmountWithoutBonus,  rootObject );
-            System.out.println("winningAmountWithSymbolBonus  " + winningAmountWithSymbolBonus);
-
+            winingSymbolAndRewardMap  = calculateWinningAmountWithoutBonus(winningDuplicateSymbols, rootObject, betAmount );
+            System.out.println("winningAmountWithoutBonus  " + winingSymbolAndRewardMap);
 
 
             // pattern based Bonus calculation
             double winningAmountWithSymbolBonusAndPatternBonus = addPatternBonus( matrixWithBonusSymbols, (HashMap<String, Integer>) winningDuplicateSymbols
-                    ,rootObject   ,winningAmountWithSymbolBonus);
+                    ,rootObject , winingSymbolAndRewardMap );
 
-            System.out.println("winningAmountWithSymbolBonusAndPatternBonus  " + winningAmountWithSymbolBonusAndPatternBonus);
+            double finalReword = addSymbolBonus( bonusKey, winningAmountWithSymbolBonusAndPatternBonus,  rootObject );
+            System.out.println("winningAmountWithSymbolBonus  " + finalReword);
+
+
+            System.out.println("finalReword  " + finalReword);
+
+
+            // final output
+            OutPut outPut = new OutPut(
+                    matrixWithBonusSymbols,
+                    finalReword,
+                    null,
+                    bonusKey.toString()
+            );
+
+            // Create ObjectMapper to serialize to JSON
+            ObjectMapper objectMapperOutput = new ObjectMapper();
+            // Enable pretty printing
+            objectMapperOutput.enable(SerializationFeature.INDENT_OUTPUT);
+
+            // Convert the object to JSON and print it
+            String json = objectMapperOutput.writeValueAsString(outPut);
+            System.out.println(json);
 
             } catch (IOException e) {
             e.printStackTrace();
