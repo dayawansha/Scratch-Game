@@ -13,16 +13,16 @@ import java.util.stream.Collectors;
 
 public class Main {
 
+
+    // this method will generate Standard Symbol Matrix based on the Probabilities of config Map
     public static String[][] generateStandardSymbolMatrix(RootObject rootObject){
 
         List<StandardSymbol> standardSymbolList = rootObject.getProbabilities().getStandardSymbols();
 
-//        String[][] standardSymbolMatrix = new String[3][3];
         String[][] standardSymbolMatrix = new String[rootObject.getRows()][rootObject.getColumns()];
 
         // Access probabilities
         for (StandardSymbol symbol : standardSymbolList) {
-//            System.out.println("Column: " + symbol.getColumn() + ", Row: " + symbol.getRow());
             Map<String, Integer> symbolMap =symbol.getSymbols();
 
             Random random = new Random();
@@ -31,7 +31,6 @@ public class Main {
             // Sum all values in the map
             totalWeight = symbolMap.values().stream().mapToInt(Integer::intValue).sum();
             int randomValue = random.nextInt(totalWeight - 1); // Generates 0 to (totalWeight - 1)
-//            System.out.println("randomValue: " + randomValue);
 
             int currentSum = 0;
             String cell = null;
@@ -50,6 +49,7 @@ public class Main {
         return standardSymbolMatrix;
     }
 
+    // this method will addB onus Symbol To the generated Matrix based on the Probabilities of config Map
     public static String[][] addBonusSymbolToMatrix(RootObject rootObject, String[][] standardSymbolMetrix, StringBuilder bonusKey) {
         Map<String, Integer> symbolMap = rootObject.getProbabilities().getBonusSymbols().getSymbols();
         int totalWeight = symbolMap.values().stream().mapToInt(Integer::intValue).sum();
@@ -73,6 +73,7 @@ public class Main {
         return standardSymbolMetrix;
     }
 
+    // this method will return Duplicate Symbols count with key
     public static Map<String, Integer> getDuplicateSymbols(String[][] matrixWithBonusSymbols ) {
         Map<String, Integer> countMap = new HashMap<>();
 
@@ -90,6 +91,7 @@ public class Main {
     }
 
 
+    // this method will calculate Winning Amount Without Bonus // betAmount * symbolValue * winCombinationsCount
     public static Map<String, Double> calculateWinningAmountWithoutBonus(Map<String, Integer> rewardMultiplierSymbolsMap, RootObject rootObject, int betAmount ){
 
         Map<String, Double> countMap = new HashMap<>();
@@ -105,15 +107,18 @@ public class Main {
         return countMap;
     }
 
-    // sub methode of CalculateWinningAmount
+
+    // sub methode of calculateWinningAmountWithoutBonus
     public static double getWinCombinationCount(int sameSymbolCount, RootObject rootObject){
         String winCombinationsKey = "same_symbol_" + sameSymbolCount + "_times";
         double winCombinationsCount = rootObject.getWinCombinations().get(winCombinationsKey).getRewardMultiplier();
-//        double winCombinationsCount = rootObject.getWinCombinations().get(winCombinationsKey).getCount();  //todo requirements shoud verify
+//        double winCombinationsCount = rootObject.getWinCombinations().get(winCombinationsKey).getCount();  //todo requirements should verify
         return winCombinationsCount;
     }
 
-    public static HashMap<String, List<String>> updateWinningCombinations(Map<String, Integer> winningDuplicateSymbols, HashMap<String, List<String>> appliedWinningCombinations){
+
+    // this method help to update "Output object , this updates "applied_winning_combinations" field
+    public static HashMap<String, List<String>> updateWinningCombinationsForOutput(Map<String, Integer> winningDuplicateSymbols, HashMap<String, List<String>> appliedWinningCombinations){
 
         HashMap<String, List<String>> newAppliedWinningCombinations = new HashMap<>();
 
@@ -121,20 +126,18 @@ public class Main {
 
             int sameSymbolCount = entry.getValue();
             String key = entry.getKey();
-
             String winCombinationsKey = "same_symbol_" + sameSymbolCount + "_times";
             List<String> newList = new ArrayList<>();
             newList.add(winCombinationsKey);
-
             List<String> list = appliedWinningCombinations.get(key);
             newList.addAll(list);
-
             newAppliedWinningCombinations.put(key,  newList);
         }
         return newAppliedWinningCombinations;
     }
 
 
+    // this method add the bonus symbol based amount to the finalReword
     public static double addSymbolBonus(StringBuilder bonusKey, double winningAmountWithoutBonus, RootObject rootObject ){
 
         double finalValue = 0;
@@ -155,6 +158,7 @@ public class Main {
         return finalValue;
     }
 
+    // this method add Pattern based Bonus to the Reword. it identified whether it is  HorizontalSequence, VerticalSequence. then add the Reword
     public static double  addPatternBonus(String[][] matrixWithBonusSymbols, HashMap<String, Integer> winningDuplicateSymbols,
                                           RootObject rootObject,  Map<String, Double> winingSymbolAndRewardMap , HashMap<String, List<String>> appliedWinningCombinations){
 
@@ -201,6 +205,9 @@ public class Main {
 
         return winningAmountWithPatternBonus;
     }
+
+
+    // sub method of addPatternBonus, this can find the all X,Y All Winning Indices
     public static void findAllWinningIndices( HashMap<String, List<Integer>> allXindexesMap,HashMap<String, List<Integer>> allYindexesMap ,
                                                  String[][] matrixWithBonusSymbols, HashMap<String, Integer> winningDuplicateSymbols, RootObject rootObject) {
 
@@ -238,6 +245,8 @@ public class Main {
         }
     }
 
+
+    // sub method of addPatternBonus, this method can identify if sequence has a Horizontal Sequence
     public static  List<String> hasHorizontalSequence( HashMap<String, List<Integer>> firstIndexMap, RootObject rootObject){
 
         List<String> keysWithFrequentNumbers = new ArrayList<>();
@@ -265,6 +274,7 @@ public class Main {
         return keysWithFrequentNumbers;
     }
 
+    // sub method of addPatternBonus, this method can identify if sequence has a Vertical Sequence
     public static  List<String> hasVerticalSequence( HashMap<String, List<Integer>> firstIndexMap, RootObject rootObject){
 
         List<String> keysWithFrequentNumbers = new ArrayList<>();
@@ -379,7 +389,7 @@ public class Main {
             double finalReword = addSymbolBonus( bonusKey, winningAmountWithSymbolBonusAndPatternBonus,  rootObject );
             System.out.println("finalReword  " + finalReword);
 
-            appliedWinningCombinations = updateWinningCombinations(winningDuplicateSymbols,  appliedWinningCombinations);
+            appliedWinningCombinations = updateWinningCombinationsForOutput(winningDuplicateSymbols,  appliedWinningCombinations);
 
             // final output
             OutPut outPut = new OutPut(
