@@ -28,16 +28,6 @@ public class OutPut {
         this.appliedBonusSymbol = appliedBonusSymbol;
     }
 
-//    // Override toString() method to print the DTO object
-//    @Override
-//    public String toString() {
-//        return "OutPut{matrix='" + matrix + "', " +
-//                "reward=" + reward +
-//                "appliedWinningCombinations=" + appliedWinningCombinations +
-//                "appliedBonusSymbol=" + appliedBonusSymbol +
-//                "}";
-//    }
-
     public String[][] getMatrix() {
         return matrix;
     }

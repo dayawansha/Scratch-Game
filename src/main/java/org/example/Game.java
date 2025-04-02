@@ -94,14 +94,18 @@ public class Game {
 
 
     // this method will calculate Winning Amount Without Bonus // betAmount * symbolValue * winCombinationsCount
-    public static Map<String, Double> calculateWinningAmountWithoutBonus(Map<String, Integer> rewardMultiplierSymbolsMap, RootObject rootObject, double betAmount ){
+    public static Map<String, Double> calculateWinningAmountWithoutBonus(Map<String, Integer> rewardMultiplierSymbolsMap, RootObject rootObject,
+                                                                         double betAmount ){
 
         Map<String, Double> countMap = new HashMap<>();
 
         for (Map.Entry<String, Integer> entry : rewardMultiplierSymbolsMap.entrySet()) {
+
             double symbolValue = (rootObject.getSymbols().get(entry.getKey()).getRewardMultiplier());
             int sameSymbolCount = entry.getValue();
+
             double winCombinationsCount = getWinCombinationCount(sameSymbolCount, rootObject);
+
             double reward = betAmount * symbolValue * winCombinationsCount ;
             countMap.put(entry.getKey(),reward );
 
@@ -140,20 +144,23 @@ public class Game {
 
 
     // this method add the bonus symbol based amount to the finalReword
-    public static double addSymbolBonus(StringBuilder bonusKey, double winningAmountWithoutBonus, RootObject rootObject ){
+    public static double addSymbolBonus(StringBuilder bonusKey, double winningAmountWithoutBonus, RootObject rootObject, Map<String, Integer>  winningDuplicateSymbols ){
 
         double finalValue = 0;
         String key = String.valueOf(bonusKey);
         String bonusType = rootObject.getSymbols().get(key).getImpact();
 
+        // Bonus symbols are only effective when there are at least one winning combination
+        if(winningDuplicateSymbols.size() == 0){
+            return winningAmountWithoutBonus;
+        }
+
         if(bonusType.equals("multiply_reward")){
             double bonusRewardMultiplier = rootObject.getSymbols().get(key).getRewardMultiplier();
             finalValue = winningAmountWithoutBonus*bonusRewardMultiplier;
-
         } else if (bonusType.equals("extra_bonus")){
             double bonusRewardMultiplier = rootObject.getSymbols().get(key).getExtra();
             finalValue = winningAmountWithoutBonus + bonusRewardMultiplier;
-
         }else if (bonusType.equals("miss")){
             finalValue = winningAmountWithoutBonus;
         }
@@ -352,28 +359,30 @@ public class Game {
 
 
             String[][] standardSymbolMatrix= generateStandardSymbolMatrix(rootObject);
-            String[][]  matrixWithBonusSymbols = addBonusSymbolToMatrix(rootObject,standardSymbolMatrix, bonusKey);
+            String[][]  matrixWithBonusSymbols2 = addBonusSymbolToMatrix(rootObject,standardSymbolMatrix, bonusKey);
 
 
-//             bonusKey = new StringBuilder("+1000");  // todo remove
+            betAmount = 100;// todo remove
+            bonusKey = new StringBuilder("+1000");  // todo remove
+//            bonusKey = new StringBuilder("MISS");  // todo remove
 //             bonusKey = new StringBuilder("5x");  // todo remove
 //             bonusKey = new StringBuilder("10x");  // todo remove
 
 //            String[][] matrixWithBonusSymbols = {
-//                    {"E", "E", "F" },
-//                    {"+1000", "D", "C" },
-//                    {"F", "F", "F" }
+//                    {"E", "F", "B" },
+//                    {"C", "D", "C" },
+//                    {"F", "A", "D" }
 //            };
 
-//            String[][] matrixWithBonusSymbols = {
-//                    {"A", "A", "B"},
-//                    {"A", "+1000", "B"},
-//                    {"A", "A", "B"}
-//            };
+            String[][] matrixWithBonusSymbols = {
+                    {"A", "A", "B"},
+                    {"A", "+1000", "B"},
+                    {"A", "A", "B"}
+            };
 
 //            String[][] matrixWithBonusSymbols = {
 //                    {"A", "B", "C"},
-//                    {"E", "B", "5x"},
+//                    {"E", "B", "+1000"},
 //                    {"F", "D", "C"}
 //            };
 
@@ -407,7 +416,7 @@ public class Game {
                     ,rootObject, winingSymbolAndRewardMap, appliedWinningCombinations );
 
 
-            double finalReword = addSymbolBonus( bonusKey, winningAmountWithSymbolBonusAndPatternBonus,  rootObject );
+            double finalReword = addSymbolBonus( bonusKey, winningAmountWithSymbolBonusAndPatternBonus,  rootObject, winningDuplicateSymbols );
             System.out.println("finalReword  " + finalReword);
 
             appliedWinningCombinations = updateWinningCombinationsForOutput(winningDuplicateSymbols,  appliedWinningCombinations);
