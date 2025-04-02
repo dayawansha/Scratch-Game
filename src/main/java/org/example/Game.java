@@ -6,12 +6,14 @@ import dto.OutPut;
 import dto.RootObject;
 import dto.StandardSymbol;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Main {
+public class Game {
 
 
     // this method will generate Standard Symbol Matrix based on the Probabilities of config Map
@@ -92,7 +94,7 @@ public class Main {
 
 
     // this method will calculate Winning Amount Without Bonus // betAmount * symbolValue * winCombinationsCount
-    public static Map<String, Double> calculateWinningAmountWithoutBonus(Map<String, Integer> rewardMultiplierSymbolsMap, RootObject rootObject, int betAmount ){
+    public static Map<String, Double> calculateWinningAmountWithoutBonus(Map<String, Integer> rewardMultiplierSymbolsMap, RootObject rootObject, double betAmount ){
 
         Map<String, Double> countMap = new HashMap<>();
 
@@ -130,7 +132,7 @@ public class Main {
             List<String> newList = new ArrayList<>();
             newList.add(winCombinationsKey);
             List<String> list = appliedWinningCombinations.get(key);
-            newList.addAll(list);
+            newList.addAll(list != null ? list : Collections.emptyList());
             newAppliedWinningCombinations.put(key,  newList);
         }
         return newAppliedWinningCombinations;
@@ -179,7 +181,7 @@ public class Main {
                 double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_horizontally").getRewardMultiplier();
                 double total = winningAmountWithSymbolBonus * rewardMultiplier * keysWithHorizontalSequence.size();
                 winningAmountWithPatternBonusHorizontally = winningAmountWithPatternBonusHorizontally + total;
-                appliedWinningCombinations.put(keysWithVerticalSequence.get(i), Collections.singletonList("same_symbols_vertically"));
+                appliedWinningCombinations.put(keysWithHorizontalSequence.get(i), Collections.singletonList("same_symbols_vertically"));
             }
         }
         double winningAmountWithPatternBonusVertically =0;
@@ -303,26 +305,39 @@ public class Main {
 
 
 
-     public static void main(String[] args) {
+     public static void main(String[] args) throws FileNotFoundException {
 
-//            // Read file name from VM arguments
-//            String configFile = System.getProperty("config");  // Read -Dconfig argument
-//
-//            if (configFile == null) {
-//                System.out.println("Error: Please provide the config file using -Dconfig=<filename>");
-//                return;
-//            }else{
-//
-//            }
+///////// java -jar Scratch-Game-1.0.jar --config config.json --betting-amount 400
 
-        int betAmount = 100;
-        System.out.println("betAmount = "+  betAmount );
+         String configPath = null;
+         double betAmount = 0.0; // Default value
+
+
+         for (int i = 0; i < args.length; i++) {
+             if (args[i].equals("--config") && i + 1 < args.length) {
+                 configPath = args[i + 1];
+             } else if (args[i].equals("--betting-amount") && i + 1 < args.length) {
+                 betAmount = Double.parseDouble(args[i + 1]);
+             }
+         }
+
+         System.out.println("Config File######: " + configPath);
+         InputStream inputStream = null;
+
+         if (configPath != null) {
+              inputStream = new FileInputStream(configPath);
+//             throw new RuntimeException("Config file path is required!");
+         }else {
+             inputStream = Game.class.getClassLoader().getResourceAsStream("config.json");
+         }
+
+         System.out.println("Betting Amount######: " + betAmount);
+
 
         StringBuilder bonusKey = new StringBuilder("");
-
         HashMap<String, List<String>> appliedWinningCombinations = new HashMap<>();
 
-        InputStream inputStream = Main.class.getClassLoader().getResourceAsStream("config.json");
+
 
         if (inputStream == null) {
             System.out.println("File not found!");
@@ -337,18 +352,24 @@ public class Main {
 
 
             String[][] standardSymbolMatrix= generateStandardSymbolMatrix(rootObject);
-            String[][]  matrixWithBonusSymbols2 = addBonusSymbolToMatrix(rootObject,standardSymbolMatrix, bonusKey);
+            String[][]  matrixWithBonusSymbols = addBonusSymbolToMatrix(rootObject,standardSymbolMatrix, bonusKey);
 
 
-             bonusKey = new StringBuilder("+1000");  // todo remove
+//             bonusKey = new StringBuilder("+1000");  // todo remove
 //             bonusKey = new StringBuilder("5x");  // todo remove
 //             bonusKey = new StringBuilder("10x");  // todo remove
 
-            String[][] matrixWithBonusSymbols = {
-                    {"A", "A", "B"},
-                    {"A", "+1000", "B"},
-                    {"A", "A", "B"}
-            };
+//            String[][] matrixWithBonusSymbols = {
+//                    {"E", "E", "F" },
+//                    {"+1000", "D", "C" },
+//                    {"F", "F", "F" }
+//            };
+
+//            String[][] matrixWithBonusSymbols = {
+//                    {"A", "A", "B"},
+//                    {"A", "+1000", "B"},
+//                    {"A", "A", "B"}
+//            };
 
 //            String[][] matrixWithBonusSymbols = {
 //                    {"A", "B", "C"},
