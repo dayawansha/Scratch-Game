@@ -213,7 +213,7 @@ public class Game {
                 // adding values to outPut object field appliedWinningCombinations
                 List<String> newList = new ArrayList<>();
                 newList.add("same_symbols_vertically");
-                appliedWinningCombinationsForOutPut.computeIfAbsent(keysWithHorizontalSequence.get(i), k -> new ArrayList<>()).addAll(newList);
+                appliedWinningCombinationsForOutPut.computeIfAbsent(keysWithVerticalSequence.get(i), k -> new ArrayList<>()).addAll(newList);
             }
         }
 
@@ -250,20 +250,26 @@ public class Game {
 
         /// check the diagonally Left To Right status
         // Use a HashSet for fast lookup
-        Set<String> indexSet = new HashSet<>();
+
 
         // Convert all indexes from HashMap into a Set
+        // based on the key, indexSet should be compared
         for (int[][] indexArray : allXYIndexesMap.values()) {
+
+            Set<String> indexSet = new HashSet<>();
             for (int[] pair : indexArray) {
                 indexSet.add(pair[0] + "," + pair[1]); // Store as "row,col"
             }
-        }
-        // Check if all primaryDiagonal indexes exist in the Set
-        for (int[] target : primaryDiagonal) {
-            if (!indexSet.contains(target[0] + "," + target[1])) {
-                status = false; // If any index is missing, return false
+
+            for (int[] target : primaryDiagonal) {
+                if (!indexSet.contains(target[0] + "," + target[1])) {
+                    status = false; // If any index is missing, return false
+                    break;
+                }
             }
         }
+        // Check if all primaryDiagonal indexes exist in the Set
+
         if(status){
              double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_diagonally_left_to_right").getRewardMultiplier();
              String symbolOfDiagonallyLeftToRight = matrixWithBonusSymbols[0][0];
@@ -302,21 +308,21 @@ public class Game {
         }
 
         /// check the diagonally Left To Right status
-        // Use a HashSet for fast lookup
-        Set<String> indexSet = new HashSet<>();
-
         // Convert all indexes from HashMap into a Set
         for (int[][] indexArray : allXYIndexesMap.values()) {
+            // Use a HashSet for fast lookup
+            Set<String> indexSet = new HashSet<>();
             for (int[] pair : indexArray) {
                 indexSet.add(pair[0] + "," + pair[1]); // Store as "row,col"
             }
-        }
-        // Check if all primaryDiagonal indexes exist in the Set
-        for (int[] target : secondaryDiagonal) {
-            if (!indexSet.contains(target[0] + "," + target[1])) {
-                status = false; // If any index is missing, return false
+            // Check if all primaryDiagonal indexes exist in the Set
+            for (int[] target : secondaryDiagonal) {
+                if (!indexSet.contains(target[0] + "," + target[1])) {
+                    status = false; // If any index is missing, return false
+                }
             }
         }
+
         if(status){
             double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_diagonally_right_to_left").getRewardMultiplier();
             String symbolOfDiagonallyRightToLeft = matrixWithBonusSymbols[0][matrixSize-1];
@@ -493,10 +499,23 @@ public class Game {
 
 
             betAmount = 100;// todo remove
-            bonusKey = new StringBuilder("+1000");  // todo remove
+//            bonusKey = new StringBuilder("+1000");  // todo remove
 //            bonusKey = new StringBuilder("MISS");  // todo remove
 //             bonusKey = new StringBuilder("5x");  // todo remove
-//             bonusKey = new StringBuilder("10x");  // todo remove
+             bonusKey = new StringBuilder("10x");  // todo remove
+
+//            String[][] matrixWithBonusSymbols = {
+//                    {"D", "D", "B"},
+//                    {"B", "D", "10x"},
+//                    {"C", "C", "C"}
+//            };
+
+            String[][] matrixWithBonusSymbols = {
+                    {"C", "D", "D"},
+                    {"C", "D", "10x"},
+                    {"C", "A", "A"}
+            };
+
 
 //            String[][] matrixWithBonusSymbols = {
 //                    {"E", "F", "B" },
@@ -510,11 +529,12 @@ public class Game {
 //                    {"A", "A", "B"}
 //            };
 
-            String[][] matrixWithBonusSymbols = {
-                    {"C", "A", "C"},
-                    {"D", "C", "B"},
-                    {"C", "C", "C"}
-            };
+//            String[][] matrixWithBonusSymbols = {
+//                    {"C", "C", "C"},
+//                    {"D", "A", "B"},
+//                    {"C", "C", "C"}
+//            };
+
 
 //            String[][] matrixWithBonusSymbols = {
 //                    {"A", "B", "C"},
