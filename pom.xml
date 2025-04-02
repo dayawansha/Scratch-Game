@@ -32,7 +32,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.example.Game</mainClass>  <!-- Update with your main class -->
+                            <mainClass>org.main.Game</mainClass>  <!-- Update with your main class -->
                         </manifest>
                     </archive>
                 </configuration>
