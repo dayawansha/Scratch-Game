@@ -124,7 +124,7 @@ public class Game {
 
 
     // this method help to update "Output object , this updates "applied_winning_combinations" field
-    public static HashMap<String, List<String>> updateWinningCombinationsForOutput(Map<String, Integer> winningDuplicateSymbols, HashMap<String, List<String>> appliedWinningCombinations){
+    public static HashMap<String, List<String>> updateWinningCombinationsForOutput(Map<String, Integer> winningDuplicateSymbols, HashMap<String, List<String>> appliedWinningCombinationsForOutPut){
 
         HashMap<String, List<String>> newAppliedWinningCombinations = new HashMap<>();
 
@@ -135,7 +135,7 @@ public class Game {
             String winCombinationsKey = "same_symbol_" + sameSymbolCount + "_times";
             List<String> newList = new ArrayList<>();
             newList.add(winCombinationsKey);
-            List<String> list = appliedWinningCombinations.get(key);
+            List<String> list = appliedWinningCombinationsForOutPut.get(key);
             newList.addAll(list != null ? list : Collections.emptyList());
             newAppliedWinningCombinations.put(key,  newList);
         }
@@ -169,7 +169,7 @@ public class Game {
 
     // this method add Pattern based Bonus to the Reword. it identified whether it is  HorizontalSequence, VerticalSequence. then add the Reword
     public static double  addPatternBonus(String[][] matrixWithBonusSymbols, HashMap<String, Integer> winningDuplicateSymbols, RootObject rootObject,
-                                          Map<String, Double> symbolValueAndSymbolDuplicationBonusMap , HashMap<String, List<String>> appliedWinningCombinations){
+                                          Map<String, Double> symbolValueAndSymbolDuplicationBonusMap , HashMap<String, List<String>> appliedWinningCombinationsForOutPut){
 
         HashMap<String, List<Integer>> allXIndexesMap = new HashMap<>();
         HashMap<String, List<Integer>> allYIndexesMap = new HashMap<>();
@@ -182,20 +182,29 @@ public class Game {
 
 
 
-         diagonallyLeftToRight( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject );
-         diagonallyRightToLeft( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject );
+//        HashMap<String, List<String>> appliedWinningCombinationsForOutPutNew =  diagonallyLeftToRight( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject, appliedWinningCombinationsForOutPut);
+//       appliedWinningCombinationsForOutPut =  diagonallyRightToLeft( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject, appliedWinningCombinationsForOutPutNew );
 
+       diagonallyLeftToRight( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject, appliedWinningCombinationsForOutPut);
+       diagonallyRightToLeft( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject, appliedWinningCombinationsForOutPut );
 
         double winningAmountWithPatternBonus = 0;
 
         double winningAmountWithPatternBonusHorizontally = 0;
         if(keysWithHorizontalSequence.size() > 0){
             for (int i = 0; i < keysWithHorizontalSequence.size(); i++) {
+
                 double winningAmountWithSymbolBonus =symbolValueAndSymbolDuplicationBonusMap.get(keysWithHorizontalSequence.get(i));
+
                 double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_horizontally").getRewardMultiplier();
+
                 double total = winningAmountWithSymbolBonus * rewardMultiplier * keysWithHorizontalSequence.size();
+
                 winningAmountWithPatternBonusHorizontally = winningAmountWithPatternBonusHorizontally + total;
-                appliedWinningCombinations.put(keysWithHorizontalSequence.get(i), Collections.singletonList("same_symbols_vertically"));
+
+                appliedWinningCombinationsForOutPut.put(keysWithHorizontalSequence.get(i), Collections.singletonList("same_symbols_vertically"));
+
+
             }
         }
 
@@ -206,9 +215,11 @@ public class Game {
                 double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_vertically").getRewardMultiplier();
                 double total = winningAmountWithSymbolBonus * rewardMultiplier * keysWithVerticalSequence.size();
                 winningAmountWithPatternBonusVertically = winningAmountWithPatternBonusVertically +   total ;
-                appliedWinningCombinations.put(keysWithVerticalSequence.get(i), Collections.singletonList("same_symbols_vertically"));
+                appliedWinningCombinationsForOutPut.put(keysWithVerticalSequence.get(i), Collections.singletonList("same_symbols_vertically"));
             }
         }
+
+        updateWinningCombinationsForOutput(winningDuplicateSymbols,  appliedWinningCombinationsForOutPut);
 
         double totalWithoutPatternBonus = 0.0;
         if(keysWithVerticalSequence.size() == 0 && keysWithHorizontalSequence.size() == 0){
@@ -226,12 +237,12 @@ public class Game {
     }
 
     // this methode will calculate and update the symbolValueAndSymbolDuplicationBonusMap if there is a diagonallyLeftToRight
-    public static Map<String, Double> diagonallyLeftToRight( HashMap<String, int[][]> allXYIndexesMap,  Map<String, Double> symbolValueAndSymbolDuplicationBonusMap ,
-                                                String[][] matrixWithBonusSymbols, RootObject rootObject ){
+    public static HashMap<String, List<String>> diagonallyLeftToRight( HashMap<String, int[][]> allXYIndexesMap,  Map<String, Double> symbolValueAndSymbolDuplicationBonusMap ,
+                                                String[][] matrixWithBonusSymbols, RootObject rootObject, HashMap<String, List<String>> appliedWinningCombinationsForOutPut ){
         boolean status = true;
 
         if( rootObject.getRows() != rootObject.getColumns()){
-            return symbolValueAndSymbolDuplicationBonusMap;
+            return appliedWinningCombinationsForOutPut;
         }
 
         int matrixSize = rootObject.getRows();
@@ -264,26 +275,28 @@ public class Game {
              String symbolOfDiagonallyLeftToRight = matrixWithBonusSymbols[0][0];
 
             double currentValueForSymbolAndDuplicationBonus = symbolValueAndSymbolDuplicationBonusMap.get(symbolOfDiagonallyLeftToRight);
-            double newValueForSymbolAndDuplicationBonus = currentValueForSymbolAndDuplicationBonus * rewardMultiplier;
+            double diagonallyValueForSymbolAndDuplicationBonus = currentValueForSymbolAndDuplicationBonus * rewardMultiplier;
 
             symbolValueAndSymbolDuplicationBonusMap.forEach((key, value) -> {
                 if (key.equals(symbolOfDiagonallyLeftToRight)) {
-                    symbolValueAndSymbolDuplicationBonusMap.put(key, newValueForSymbolAndDuplicationBonus);
+                    symbolValueAndSymbolDuplicationBonusMap.put(key, diagonallyValueForSymbolAndDuplicationBonus);
                 }
             });
-
+            List<String> newList = new ArrayList<>();
+            newList.add("same_symbols_diagonally_left_to_right");
+            appliedWinningCombinationsForOutPut.computeIfAbsent(symbolOfDiagonallyLeftToRight, k -> new ArrayList<>()).addAll(newList);
         }
-        return symbolValueAndSymbolDuplicationBonusMap;
+        return appliedWinningCombinationsForOutPut;
     }
 
 
     // this methode will calculate and update the symbolValueAndSymbolDuplicationBonusMap if there is a diagonallyRightToLeft
-    public static Map<String, Double> diagonallyRightToLeft( HashMap<String, int[][]> allXYIndexesMap,  Map<String, Double> symbolValueAndSymbolDuplicationBonusMap ,
-                                                             String[][] matrixWithBonusSymbols, RootObject rootObject ){
+    public static HashMap<String, List<String>> diagonallyRightToLeft( HashMap<String, int[][]> allXYIndexesMap,  Map<String, Double> symbolValueAndSymbolDuplicationBonusMap ,
+                                                             String[][] matrixWithBonusSymbols, RootObject rootObject , HashMap<String, List<String>> appliedWinningCombinationsForOutPut){
         boolean status = true;
 
         if( rootObject.getRows() != rootObject.getColumns()){
-            return symbolValueAndSymbolDuplicationBonusMap;
+            return appliedWinningCombinationsForOutPut;
         }
 
         int matrixSize = rootObject.getRows();
@@ -315,16 +328,20 @@ public class Game {
             String symbolOfDiagonallyRightToLeft = matrixWithBonusSymbols[0][matrixSize-1];
 
             double currentValueForSymbolAndDuplicationBonus = symbolValueAndSymbolDuplicationBonusMap.get(symbolOfDiagonallyRightToLeft);
-            double newValueForSymbolAndDuplicationBonus = currentValueForSymbolAndDuplicationBonus * rewardMultiplier;
+            double diagonallyValueForSymbolAndDuplicationBonus = currentValueForSymbolAndDuplicationBonus * rewardMultiplier;
 
             symbolValueAndSymbolDuplicationBonusMap.forEach((key, value) -> {
                 if (key.equals(symbolOfDiagonallyRightToLeft)) {
-                    symbolValueAndSymbolDuplicationBonusMap.put(key, newValueForSymbolAndDuplicationBonus);
+                    symbolValueAndSymbolDuplicationBonusMap.put(key, diagonallyValueForSymbolAndDuplicationBonus);
                 }
             });
 
+            List<String> newList = new ArrayList<>();
+            newList.add("same_symbols_diagonally_right_to_left");
+            appliedWinningCombinationsForOutPut.computeIfAbsent(symbolOfDiagonallyRightToLeft, k -> new ArrayList<>()).addAll(newList);
         }
-        return symbolValueAndSymbolDuplicationBonusMap;
+
+        return appliedWinningCombinationsForOutPut;
     }
 
 
@@ -463,7 +480,7 @@ public class Game {
 
 
         StringBuilder bonusKey = new StringBuilder("");
-        HashMap<String, List<String>> appliedWinningCombinations = new HashMap<>();
+        HashMap<String, List<String>> appliedWinningCombinationsForOutPut = new HashMap<>();
 
 
 
@@ -502,9 +519,9 @@ public class Game {
 //            };
 
             String[][] matrixWithBonusSymbols = {
-                    {"A", "A", "B"},
-                    {"D", "B", "C"},
-                    {"B", "C", "A"}
+                    {"B", "A", "B"},
+                    {"B", "A", "C"},
+                    {"B", "C", "B"}
             };
 
 //            String[][] matrixWithBonusSymbols = {
@@ -540,19 +557,19 @@ public class Game {
 
             // pattern based Bonus calculation
             double winningAmountWithSymbolBonusAndPatternBonus = addPatternBonus( matrixWithBonusSymbols, (HashMap<String, Integer>) winningDuplicateSymbols
-                    ,rootObject, symbolValueAndSymbolDuplicationBonusMap, appliedWinningCombinations );
+                    ,rootObject, symbolValueAndSymbolDuplicationBonusMap, appliedWinningCombinationsForOutPut );
 
 
             double finalReword = addSymbolBonus( bonusKey, winningAmountWithSymbolBonusAndPatternBonus,  rootObject, winningDuplicateSymbols );
             System.out.println("finalReword  " + finalReword);
 
-            appliedWinningCombinations = updateWinningCombinationsForOutput(winningDuplicateSymbols,  appliedWinningCombinations);
+            appliedWinningCombinationsForOutPut = updateWinningCombinationsForOutput(winningDuplicateSymbols,  appliedWinningCombinationsForOutPut);
 
             // final output
             OutPut outPut = new OutPut(
                     matrixWithBonusSymbols,
                     finalReword,
-                    appliedWinningCombinations,
+                    appliedWinningCombinationsForOutPut,
                     bonusKey.toString()
             );
 
