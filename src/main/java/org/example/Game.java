@@ -372,7 +372,7 @@ public class Game {
         }
 
         // Printing the indexMap
-        for (Map.Entry<String, int[][]> entry : allXYIndexesMap.entrySet()) {
+/*        for (Map.Entry<String, int[][]> entry : allXYIndexesMap.entrySet()) {
             System.out.println("Key: " + entry.getKey());
             for (int[] pos : entry.getValue()) {
                 System.out.println("  (" + pos[0] + ", " + pos[1] + ")");
@@ -387,7 +387,8 @@ public class Game {
         // Printing the map
         for (Map.Entry<String, List<Integer>> entry : allYindexesMap.entrySet()) {
             System.out.println("Y Key: " + entry.getKey() + ", Values: " + entry.getValue());
-        }
+        }*/
+
     }
 
 
@@ -414,7 +415,7 @@ public class Game {
                     break; // No need to check further for this key
                 }
             }
-            System.out.println("Horizontal Sequence, symbol appearing more than " + columnLength + " times: " + keysWithFrequentNumbers);
+//            System.out.println("Horizontal Sequence, symbol appearing more than " + columnLength + " times: " + keysWithFrequentNumbers);
         }
         return keysWithFrequentNumbers;
     }
@@ -441,7 +442,7 @@ public class Game {
                     break; // No need to check further for this key
                 }
             }
-            System.out.println("Vertical Sequence, symbol appearing more than " + rowLength + " times: " + keysWithFrequentNumbers);
+//            System.out.println("Vertical Sequence, symbol appearing more than " + rowLength + " times: " + keysWithFrequentNumbers);
         }
         return keysWithFrequentNumbers;
     }
@@ -453,7 +454,7 @@ public class Game {
 ///////// java -jar Scratch-Game-1.0.jar --config config.json --betting-amount 400
 
          String configPath = null;
-         double betAmount = 0.0; // Default value
+         double betAmount = 100.0; // Default value
 
 
          for (int i = 0; i < args.length; i++) {
@@ -464,7 +465,6 @@ public class Game {
              }
          }
 
-         System.out.println("Config File######: " + configPath);
          InputStream inputStream = null;
 
          if (configPath != null) {
@@ -474,13 +474,8 @@ public class Game {
              inputStream = Game.class.getClassLoader().getResourceAsStream("config.json");
          }
 
-         System.out.println("Betting Amount######: " + betAmount);
-
-
         StringBuilder bonusKey = new StringBuilder("");
         HashMap<String, List<String>> appliedWinningCombinationsForOutPut = new HashMap<>();
-
-
 
         if (inputStream == null) {
             System.out.println("File not found!");
@@ -495,85 +490,25 @@ public class Game {
 
 
             String[][] standardSymbolMatrix= generateStandardSymbolMatrix(rootObject);
-            String[][]  matrixWithBonusSymbols2 = addBonusSymbolToMatrix(rootObject,standardSymbolMatrix, bonusKey);
-
-
-            betAmount = 100;// todo remove
-//            bonusKey = new StringBuilder("+1000");  // todo remove
-//            bonusKey = new StringBuilder("MISS");  // todo remove
-//             bonusKey = new StringBuilder("5x");  // todo remove
-             bonusKey = new StringBuilder("10x");  // todo remove
-
-//            String[][] matrixWithBonusSymbols = {
-//                    {"D", "D", "B"},
-//                    {"B", "D", "10x"},
-//                    {"C", "C", "C"}
-//            };
-
-            String[][] matrixWithBonusSymbols = {
-                    {"C", "D", "D"},
-                    {"C", "D", "10x"},
-                    {"C", "A", "A"}
-            };
-
-
-//            String[][] matrixWithBonusSymbols = {
-//                    {"E", "F", "B" },
-//                    {"C", "D", "C" },
-//                    {"F", "A", "D" }
-//            };
-
-//            String[][] matrixWithBonusSymbols = {
-//                    {"A", "A", "B"},
-//                    {"A", "+1000", "B"},
-//                    {"A", "A", "B"}
-//            };
-
-//            String[][] matrixWithBonusSymbols = {
-//                    {"C", "C", "C"},
-//                    {"D", "A", "B"},
-//                    {"C", "C", "C"}
-//            };
-
-
-//            String[][] matrixWithBonusSymbols = {
-//                    {"A", "B", "C"},
-//                    {"E", "B", "+1000"},
-//                    {"F", "D", "C"}
-//            };
-
-
-//            String[][] matrixWithBonusSymbols = {
-//                    {"A", "B", "C"},
-//                    {"E", "B", "10x"},
-//                    {"F", "D", "B"}
-//            };
-
-            System.out.println("bonusKey  @@@@@@@@@@  " + bonusKey);
+            String[][]  matrixWithBonusSymbols = addBonusSymbolToMatrix(rootObject,standardSymbolMatrix, bonusKey);
 
             // Print the 2D array
-            for (String[] row : matrixWithBonusSymbols) {
+/*            for (String[] row : matrixWithBonusSymbols) {
                 for (String col : row) {
-                    System.out.print(col + " ");
+                    System.out.print(col + "   ");
                 }
                 System.out.println();
-            }
+            }*/
 
-            System.out.println("getDuplicateSymbols  " + getDuplicateSymbols(matrixWithBonusSymbols));
             Map<String, Integer>  winningDuplicateSymbols = getDuplicateSymbols(matrixWithBonusSymbols);
 
-
             Map<String, Double> symbolValueAndSymbolDuplicationBonusMap  = addSymbolValueAndSymbolDuplicationBonus(winningDuplicateSymbols, rootObject, betAmount );
-            System.out.println("symbolValueAndSymbolDuplicationBonusMap  " + symbolValueAndSymbolDuplicationBonusMap);
-
 
             // pattern based Bonus calculation
             double winningAmountWithSymbolBonusAndPatternBonus = addPatternBonus( matrixWithBonusSymbols, (HashMap<String, Integer>) winningDuplicateSymbols
                     ,rootObject, symbolValueAndSymbolDuplicationBonusMap, appliedWinningCombinationsForOutPut );
 
-
             double finalReword = addSymbolBonus( bonusKey, winningAmountWithSymbolBonusAndPatternBonus,  rootObject, winningDuplicateSymbols );
-            System.out.println("finalReword  " + finalReword);
 
             appliedWinningCombinationsForOutPut = updateWinningCombinationsForOutput(winningDuplicateSymbols,  appliedWinningCombinationsForOutPut);
 
