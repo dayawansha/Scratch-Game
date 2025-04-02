@@ -181,7 +181,11 @@ public class Game {
         List<String> keysWithVerticalSequence = hasVerticalSequence(allYIndexesMap,  rootObject);
 
 
+        // this methode will calculate and update the symbolValueAndSymbolDuplicationBonusMap if there is a diagonallyLeftToRight
          diagonallyLeftToRight( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject );
+
+        // this methode will calculate and update the symbolValueAndSymbolDuplicationBonusMap if there is a diagonallyRightToLeft
+         diagonallyRightToLeft( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject );
 
 
         double winningAmountWithPatternBonus = 0;
@@ -225,9 +229,7 @@ public class Game {
 
     public static Map<String, Double> diagonallyLeftToRight( HashMap<String, int[][]> allXYIndexesMap,  Map<String, Double> symbolValueAndSymbolDuplicationBonusMap ,
                                                 String[][] matrixWithBonusSymbols, RootObject rootObject ){
-
         boolean status = true;
-        String diagonallyKey = "";
 
         if( rootObject.getRows() != rootObject.getColumns()){
             return symbolValueAndSymbolDuplicationBonusMap;
@@ -272,9 +274,59 @@ public class Game {
             });
 
         }
-//
         return symbolValueAndSymbolDuplicationBonusMap;
     }
+
+
+    public static Map<String, Double> diagonallyRightToLeft( HashMap<String, int[][]> allXYIndexesMap,  Map<String, Double> symbolValueAndSymbolDuplicationBonusMap ,
+                                                             String[][] matrixWithBonusSymbols, RootObject rootObject ){
+        boolean status = true;
+
+        if( rootObject.getRows() != rootObject.getColumns()){
+            return symbolValueAndSymbolDuplicationBonusMap;
+        }
+
+        int matrixSize = rootObject.getRows();
+        int[][] secondaryDiagonal = new int[matrixSize][2];
+
+        for (int i = 0; i < matrixSize ; i++) {
+            secondaryDiagonal[i][0] = i;
+            secondaryDiagonal[i][1] = matrixSize - 1 - i;
+        }
+
+        /// check the diagonally Left To Right status
+        // Use a HashSet for fast lookup
+        Set<String> indexSet = new HashSet<>();
+
+        // Convert all indexes from HashMap into a Set
+        for (int[][] indexArray : allXYIndexesMap.values()) {
+            for (int[] pair : indexArray) {
+                indexSet.add(pair[0] + "," + pair[1]); // Store as "row,col"
+            }
+        }
+        // Check if all primaryDiagonal indexes exist in the Set
+        for (int[] target : secondaryDiagonal) {
+            if (!indexSet.contains(target[0] + "," + target[1])) {
+                status = false; // If any index is missing, return false
+            }
+        }
+        if(status){
+            double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_diagonally_right_to_left").getRewardMultiplier();
+            String symbolOfDiagonallyRightToLeft = matrixWithBonusSymbols[0][matrixSize-1];
+
+            double currentValueForSymbolAndDuplicationBonus = symbolValueAndSymbolDuplicationBonusMap.get(symbolOfDiagonallyRightToLeft);
+            double newValueForSymbolAndDuplicationBonus = currentValueForSymbolAndDuplicationBonus * rewardMultiplier;
+
+            symbolValueAndSymbolDuplicationBonusMap.forEach((key, value) -> {
+                if (key.equals(symbolOfDiagonallyRightToLeft)) {
+                    symbolValueAndSymbolDuplicationBonusMap.put(key, newValueForSymbolAndDuplicationBonus);
+                }
+            });
+
+        }
+        return symbolValueAndSymbolDuplicationBonusMap;
+    }
+
 
 
     // sub method of addPatternBonus, this can find the all X,Y All Winning Indices
@@ -451,7 +503,7 @@ public class Game {
 
             String[][] matrixWithBonusSymbols = {
                     {"A", "A", "B"},
-                    {"D", "A", "B"},
+                    {"D", "B", "C"},
                     {"B", "C", "A"}
             };
 
