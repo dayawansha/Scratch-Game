@@ -180,11 +180,6 @@ public class Game {
         List<String> keysWithHorizontalSequence = hasHorizontalSequence(allXIndexesMap,  rootObject);
         List<String> keysWithVerticalSequence = hasVerticalSequence(allYIndexesMap,  rootObject);
 
-
-
-//        HashMap<String, List<String>> appliedWinningCombinationsForOutPutNew =  diagonallyLeftToRight( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject, appliedWinningCombinationsForOutPut);
-//       appliedWinningCombinationsForOutPut =  diagonallyRightToLeft( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject, appliedWinningCombinationsForOutPutNew );
-
        diagonallyLeftToRight( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject, appliedWinningCombinationsForOutPut);
        diagonallyRightToLeft( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject, appliedWinningCombinationsForOutPut );
 
@@ -195,31 +190,32 @@ public class Game {
             for (int i = 0; i < keysWithHorizontalSequence.size(); i++) {
 
                 double winningAmountWithSymbolBonus =symbolValueAndSymbolDuplicationBonusMap.get(keysWithHorizontalSequence.get(i));
-
                 double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_horizontally").getRewardMultiplier();
-
                 double total = winningAmountWithSymbolBonus * rewardMultiplier * keysWithHorizontalSequence.size();
-
                 winningAmountWithPatternBonusHorizontally = winningAmountWithPatternBonusHorizontally + total;
 
-                appliedWinningCombinationsForOutPut.put(keysWithHorizontalSequence.get(i), Collections.singletonList("same_symbols_vertically"));
-
-
+                // adding values to outPut object field appliedWinningCombinations
+                List<String> newList = new ArrayList<>();
+                newList.add("same_symbols_horizontally");
+                appliedWinningCombinationsForOutPut.computeIfAbsent(keysWithHorizontalSequence.get(i), k -> new ArrayList<>()).addAll(newList);
             }
         }
 
         double winningAmountWithPatternBonusVertically =0;
         if (keysWithVerticalSequence.size() > 0) {
+
             for (int i = 0; i < keysWithVerticalSequence.size(); i++) {
                 double winningAmountWithSymbolBonus =symbolValueAndSymbolDuplicationBonusMap.get(keysWithVerticalSequence.get(i));
                 double rewardMultiplier = rootObject.getWinCombinations().get("same_symbols_vertically").getRewardMultiplier();
                 double total = winningAmountWithSymbolBonus * rewardMultiplier * keysWithVerticalSequence.size();
                 winningAmountWithPatternBonusVertically = winningAmountWithPatternBonusVertically +   total ;
-                appliedWinningCombinationsForOutPut.put(keysWithVerticalSequence.get(i), Collections.singletonList("same_symbols_vertically"));
+
+                // adding values to outPut object field appliedWinningCombinations
+                List<String> newList = new ArrayList<>();
+                newList.add("same_symbols_vertically");
+                appliedWinningCombinationsForOutPut.computeIfAbsent(keysWithHorizontalSequence.get(i), k -> new ArrayList<>()).addAll(newList);
             }
         }
-
-        updateWinningCombinationsForOutput(winningDuplicateSymbols,  appliedWinningCombinationsForOutPut);
 
         double totalWithoutPatternBonus = 0.0;
         if(keysWithVerticalSequence.size() == 0 && keysWithHorizontalSequence.size() == 0){
@@ -228,8 +224,6 @@ public class Game {
                     .mapToDouble(Double::doubleValue)
                     .sum();
         }
-
-
 
         winningAmountWithPatternBonus = winningAmountWithPatternBonusHorizontally + winningAmountWithPatternBonusVertically + totalWithoutPatternBonus;
 
@@ -335,12 +329,10 @@ public class Game {
                     symbolValueAndSymbolDuplicationBonusMap.put(key, diagonallyValueForSymbolAndDuplicationBonus);
                 }
             });
-
             List<String> newList = new ArrayList<>();
             newList.add("same_symbols_diagonally_right_to_left");
             appliedWinningCombinationsForOutPut.computeIfAbsent(symbolOfDiagonallyRightToLeft, k -> new ArrayList<>()).addAll(newList);
         }
-
         return appliedWinningCombinationsForOutPut;
     }
 
@@ -519,9 +511,9 @@ public class Game {
 //            };
 
             String[][] matrixWithBonusSymbols = {
-                    {"B", "A", "B"},
-                    {"B", "A", "C"},
-                    {"B", "C", "B"}
+                    {"C", "A", "C"},
+                    {"D", "C", "B"},
+                    {"C", "C", "C"}
             };
 
 //            String[][] matrixWithBonusSymbols = {
