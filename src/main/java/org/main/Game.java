@@ -451,7 +451,7 @@ public class Game {
      public static void main(String[] args) throws FileNotFoundException {
 
          String configPath = null;
-         double betAmount = 100.0; // Default value
+         double betAmount = 0; // Default value
 
 
          for (int i = 0; i < args.length; i++) {
