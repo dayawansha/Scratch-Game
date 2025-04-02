@@ -450,8 +450,6 @@ public class Game {
 
      public static void main(String[] args) throws FileNotFoundException {
 
-///////// java -jar Scratch-Game-1.0.jar --config config.json --betting-amount 400
-
          String configPath = null;
          double betAmount = 100.0; // Default value
 
