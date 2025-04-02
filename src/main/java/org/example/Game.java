@@ -118,7 +118,6 @@ public class Game {
     public static double getWinCombinationCount(int sameSymbolCount, RootObject rootObject){
         String winCombinationsKey = "same_symbol_" + sameSymbolCount + "_times";
         double winCombinationsCount = rootObject.getWinCombinations().get(winCombinationsKey).getRewardMultiplier();
-//        double winCombinationsCount = rootObject.getWinCombinations().get(winCombinationsKey).getCount();  //todo requirements should verify
         return winCombinationsCount;
     }
 
@@ -465,20 +464,24 @@ public class Game {
              }
          }
 
-         InputStream inputStream = null;
+         if(betAmount == 0){
+             throw new RuntimeException("The betting amount should be greater than 0.");
+         }
+
+         InputStream configFileInputStream = null;
 
          if (configPath != null) {
-              inputStream = new FileInputStream(configPath);
+             configFileInputStream = new FileInputStream(configPath);
 //             throw new RuntimeException("Config file path is required!");
          }else {
-             inputStream = Game.class.getClassLoader().getResourceAsStream("config.json");
+             configFileInputStream = Game.class.getClassLoader().getResourceAsStream("config.json");
          }
 
         StringBuilder bonusKey = new StringBuilder("");
         HashMap<String, List<String>> appliedWinningCombinationsForOutPut = new HashMap<>();
 
-        if (inputStream == null) {
-            System.out.println("File not found!");
+        if (configFileInputStream == null) {
+            System.out.println("File not found! The config.json file should be provided.");
             return;
         }
         try {
@@ -486,7 +489,7 @@ public class Game {
             // Create ObjectMapper for reading JSON
             ObjectMapper objectMapper = new ObjectMapper();
             // Read the JSON into the root object (RootObject is the class representing the JSON structure)
-            RootObject rootObject = objectMapper.readValue(inputStream, RootObject.class);
+            RootObject rootObject = objectMapper.readValue(configFileInputStream, RootObject.class);
 
 
             String[][] standardSymbolMatrix= generateStandardSymbolMatrix(rootObject);
