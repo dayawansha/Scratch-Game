@@ -453,7 +453,6 @@ public class Game {
          String configPath = null;
          double betAmount = 0; // Default value
 
-
          for (int i = 0; i < args.length; i++) {
              if (args[i].equals("--config") && i + 1 < args.length) {
                  configPath = args[i + 1];
