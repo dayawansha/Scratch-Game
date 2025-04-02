@@ -181,10 +181,8 @@ public class Game {
         List<String> keysWithVerticalSequence = hasVerticalSequence(allYIndexesMap,  rootObject);
 
 
-        // this methode will calculate and update the symbolValueAndSymbolDuplicationBonusMap if there is a diagonallyLeftToRight
-         diagonallyLeftToRight( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject );
 
-        // this methode will calculate and update the symbolValueAndSymbolDuplicationBonusMap if there is a diagonallyRightToLeft
+         diagonallyLeftToRight( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject );
          diagonallyRightToLeft( allXYIndexesMap,symbolValueAndSymbolDuplicationBonusMap,matrixWithBonusSymbols,rootObject );
 
 
@@ -227,6 +225,7 @@ public class Game {
         return winningAmountWithPatternBonus;
     }
 
+    // this methode will calculate and update the symbolValueAndSymbolDuplicationBonusMap if there is a diagonallyLeftToRight
     public static Map<String, Double> diagonallyLeftToRight( HashMap<String, int[][]> allXYIndexesMap,  Map<String, Double> symbolValueAndSymbolDuplicationBonusMap ,
                                                 String[][] matrixWithBonusSymbols, RootObject rootObject ){
         boolean status = true;
@@ -278,6 +277,7 @@ public class Game {
     }
 
 
+    // this methode will calculate and update the symbolValueAndSymbolDuplicationBonusMap if there is a diagonallyRightToLeft
     public static Map<String, Double> diagonallyRightToLeft( HashMap<String, int[][]> allXYIndexesMap,  Map<String, Double> symbolValueAndSymbolDuplicationBonusMap ,
                                                              String[][] matrixWithBonusSymbols, RootObject rootObject ){
         boolean status = true;
