@@ -238,6 +238,14 @@ public class Game {
             return appliedWinningCombinationsForOutPut;
         }
 
+        if(symbolValueAndSymbolDuplicationBonusMap == null){
+            return appliedWinningCombinationsForOutPut;
+        }
+
+        if(symbolValueAndSymbolDuplicationBonusMap.size() == 0){
+            return appliedWinningCombinationsForOutPut;
+        }
+
         int matrixSize = rootObject.getRows();
         int[][] primaryDiagonal = new int[matrixSize][2];
 
@@ -295,6 +303,14 @@ public class Game {
         boolean status = true;
 
         if( rootObject.getRows() != rootObject.getColumns()){
+            return appliedWinningCombinationsForOutPut;
+        }
+
+        if(symbolValueAndSymbolDuplicationBonusMap == null){
+            return appliedWinningCombinationsForOutPut;
+        }
+
+        if(symbolValueAndSymbolDuplicationBonusMap.size() == 0){
             return appliedWinningCombinationsForOutPut;
         }
 
